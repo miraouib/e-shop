@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "home": "الرئيسية",
+    "shop": "المتجر",
+    "admin": "الإدارة"
+  },
+  "HomePage": {
+    "new_arrivals": "وصل حديثاً",
+    "view_all": "عرض الكل",
+    "testimonials_title": "ماذا يقول عملاؤنا",
+    "testimonial_text": "خدمة عملاء ممتازة وجودة منتجات رائعة! التوصيل كان سريع جداً.",
+    "client": "عميل"
+  },
+  "Shop": {
+    "filters": "تصفية",
+    "categories": "الفئات",
+    "all": "الكل",
+    "sort_by": "ترتيب حسب",
+    "relevance": "الصلة",
+    "newest": "الأحدث",
+    "price_asc": "السعر: من الأقل للأعلى",
+    "price_desc": "السعر: من الأعلى للأقل",
+    "apply": "تطبيق",
+    "no_products": "لا توجد منتجات.",
+    "load_more": "تحميل المزيد"
+  },
+  "Product": {
+    "add_to_cart": "أضف إلى السلة",
+    "special_offer": "✨ عرض خاص!",
+    "special_offer_desc": "وفر عند شراء أكثر من قطعة: {price} د.ت للقطعة عند شراء {threshold} أو أكثر.",
+    "quick_buy": "شراء سريع",
+    "name": "الاسم الكامل",
+    "phone": "رقم الهاتف",
+    "address": "عنوان التوصيل",
+    "quantity": "الكمية",
+    "order_now": "أطلب الآن"
+  },
+  "Cart": {
+    "cart": "سلة التسوق",
+    "empty": "سلة التسوق فارغة",
+    "total": "المجموع:",
+    "free_shipping_away": "باقي {amount} د.ت للحصول على شحن مجاني!",
+    "free_shipping_unlocked": "تم تفعيل الشحن المجاني! 🎉"
+  },
+  "Admin": {
+    "dashboard": "لوحة الإدارة",
+    "logout": "تسجيل الخروج",
+    "orders": "الطلبات",
+    "products": "المنتجات",
+    "settings": "الإعدادات",
+    "no_orders": "لا توجد طلبات.",
+    "id": "معرف",
+    "client": "العميل",
+    "total": "المجموع",
+    "status": "الحالة",
+    "date": "التاريخ"
+  }
+}

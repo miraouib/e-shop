@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "shop": "Shop",
+    "admin": "Admin"
+  },
+  "HomePage": {
+    "new_arrivals": "New Arrivals",
+    "view_all": "View All",
+    "testimonials_title": "What our customers say",
+    "testimonial_text": "Top notch customer service and excellent product quality! Shipping was very fast.",
+    "client": "Customer"
+  },
+  "Shop": {
+    "filters": "Filters",
+    "categories": "Categories",
+    "all": "All",
+    "sort_by": "Sort by",
+    "relevance": "Relevance",
+    "newest": "Newest",
+    "price_asc": "Price: Low to High",
+    "price_desc": "Price: High to Low",
+    "apply": "Apply",
+    "no_products": "No products found.",
+    "load_more": "Load more"
+  },
+  "Product": {
+    "add_to_cart": "Add to cart",
+    "special_offer": "✨ Special Offer!",
+    "special_offer_desc": "Save by buying multiple: {price} DT each when buying {threshold} or more.",
+    "quick_buy": "Quick Buy",
+    "name": "Full name",
+    "phone": "Phone number",
+    "address": "Delivery address",
+    "quantity": "Quantity",
+    "order_now": "Order Now"
+  },
+  "Cart": {
+    "cart": "Cart",
+    "empty": "Your cart is empty",
+    "total": "Total:",
+    "free_shipping_away": "Only {amount} DT away from free shipping!",
+    "free_shipping_unlocked": "Free shipping unlocked! 🎉"
+  },
+  "Admin": {
+    "dashboard": "Admin Dashboard",
+    "logout": "Logout",
+    "orders": "Orders",
+    "products": "Products",
+    "settings": "Settings",
+    "no_orders": "No orders found.",
+    "id": "ID",
+    "client": "Customer",
+    "total": "Total",
+    "status": "Status",
+    "date": "Date"
+  }
+}

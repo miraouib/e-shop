@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "home": "Accueil",
+    "shop": "Boutique",
+    "admin": "Admin"
+  },
+  "HomePage": {
+    "new_arrivals": "Nouveautés",
+    "view_all": "Voir tout",
+    "testimonials_title": "Ce que nos clients disent",
+    "testimonial_text": "Service client au top et produits d'excellente qualité ! La livraison était très rapide.",
+    "client": "Client"
+  },
+  "Shop": {
+    "filters": "Filtres",
+    "categories": "Catégories",
+    "all": "Toutes",
+    "sort_by": "Trier par",
+    "relevance": "Pertinence",
+    "newest": "Nouveautés",
+    "price_asc": "Prix croissant",
+    "price_desc": "Prix décroissant",
+    "apply": "Appliquer",
+    "no_products": "Aucun produit trouvé.",
+    "load_more": "Charger plus"
+  },
+  "Product": {
+    "add_to_cart": "Ajouter au panier",
+    "special_offer": "✨ Offre Spéciale !",
+    "special_offer_desc": "Économisez en achetant plusieurs : {price} DT l'unité à partir de {threshold} articles.",
+    "quick_buy": "Achat Rapide",
+    "name": "Nom complet",
+    "phone": "Téléphone",
+    "address": "Adresse de livraison",
+    "quantity": "Quantité",
+    "order_now": "Commander Maintenant"
+  },
+  "Cart": {
+    "cart": "Panier",
+    "empty": "Votre panier est vide",
+    "total": "Total :",
+    "free_shipping_away": "Plus que {amount} DT pour la livraison gratuite !",
+    "free_shipping_unlocked": "Livraison gratuite débloquée ! 🎉"
+  },
+  "Admin": {
+    "dashboard": "Tableau de bord Admin",
+    "logout": "Se déconnecter",
+    "orders": "Commandes",
+    "products": "Produits",
+    "settings": "Paramètres",
+    "no_orders": "Aucune commande trouvée.",
+    "id": "ID",
+    "client": "Client",
+    "total": "Total",
+    "status": "Statut",
+    "date": "Date"
+  }
+}
