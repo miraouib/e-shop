@@ -3,13 +3,23 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use App\Repository\OrderRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: '`order`')]
-#[ApiResource]
+#[ApiResource(
+    paginationEnabled: true,
+    paginationItemsPerPage: 10,
+    paginationClientItemsPerPage: true,
+    paginationMaximumItemsPerPage: 50
+)]
+#[ApiFilter(SearchFilter::class, properties: ['status' => 'exact', 'customerName' => 'partial', 'phone' => 'partial'])]
+#[ApiFilter(BooleanFilter::class, properties: ['isArchive'])]
 class Order
 {
     #[ORM\Id]
@@ -37,6 +47,9 @@ class Order
     
     #[ORM\Column(type: Types::JSON)]
     private array $items = [];
+
+    #[ORM\Column(options: ["default" => false])]
+    private ?bool $isArchive = false;
 
     public function __construct()
     {
@@ -128,6 +141,18 @@ class Order
     public function setItems(array $items): static
     {
         $this->items = $items;
+
+        return $this;
+    }
+
+    public function isArchive(): ?bool
+    {
+        return $this->isArchive;
+    }
+
+    public function setIsArchive(bool $isArchive): static
+    {
+        $this->isArchive = $isArchive;
 
         return $this;
     }

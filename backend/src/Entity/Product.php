@@ -15,7 +15,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['product:read']]
+    normalizationContext: ['groups' => ['product:read']],
+    denormalizationContext: ['groups' => ['product:write']],
+    paginationEnabled: true,
+    paginationItemsPerPage: 10,
+    paginationClientItemsPerPage: true,
+    paginationMaximumItemsPerPage: 50
 )]
 #[ApiFilter(SearchFilter::class, properties: ['category' => 'exact'])]
 #[ApiFilter(OrderFilter::class, properties: ['price', 'id'], arguments: ['orderParameterName' => 'order'])]
@@ -28,32 +33,32 @@ class Product
     private ?int $id = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private array $translations = [];
 
     #[ORM\Column]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?float $price = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?float $shippingFee = null;
 
     #[ORM\Column]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private array $images = [];
 
     #[ORM\Column]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?bool $isActive = true;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?Category $category = null;
 
     #[ORM\OneToMany(mappedBy: 'product', targetEntity: Promotion::class, cascade: ['persist', 'remove'])]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private Collection $promotions;
 
     public function __construct()

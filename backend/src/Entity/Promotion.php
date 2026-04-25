@@ -18,11 +18,11 @@ class Promotion
     private ?int $id = null;
 
     #[ORM\Column]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?int $quantityThreshold = null;
 
     #[ORM\Column]
-    #[Groups(['product:read'])]
+    #[Groups(['product:read', 'product:write'])]
     private ?float $discountPrice = null;
 
     #[ORM\ManyToOne(inversedBy: 'promotions')]
