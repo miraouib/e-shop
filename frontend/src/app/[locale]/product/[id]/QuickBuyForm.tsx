@@ -118,10 +118,10 @@ export default function QuickBuyForm({ product, promotions }: { product: any, pr
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-gray-50 dark:bg-gray-900 p-6 rounded-2xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-form p-6 rounded-2xl" style={{ color: "var(--form-text)" }}>
         <div className="flex items-center gap-4 mb-6">
           <label className="font-semibold">{t('quantity')} :</label>
-          <div className="flex items-center bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="flex items-center bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-hidden" style={{ color: "var(--foreground)" }}>
             <button 
               type="button" 
               className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white"
@@ -169,8 +169,8 @@ export default function QuickBuyForm({ product, promotions }: { product: any, pr
           {errors.address && <span className="text-red-500 text-sm mt-1">{errors.address.message}</span>}
         </div>
 
-        <div className="flex justify-between items-center py-4 border-t border-gray-200 mt-4">
-          <span className="text-lg text-gray-600 dark:text-gray-300">Total :</span>
+        <div className="flex justify-between items-center py-4 border-t border-gray-200/20 mt-4">
+          <span className="text-lg opacity-80">Total :</span>
           <span className="text-2xl font-bold text-primary">{total} DT</span>
         </div>
 

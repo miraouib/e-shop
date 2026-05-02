@@ -62,8 +62,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         <h1 className="text-4xl font-bold mb-2">{title}</h1>
         <p className="text-gray-500 mb-6">{product.category?.name}</p>
         
-        <div className="mb-6">
+        <div className="mb-6 flex items-baseline gap-3">
           <span className="text-3xl font-bold text-primary">{product.price} DT</span>
+          {product.originalPrice && (
+            <span className="text-xl text-gray-400 line-through font-medium">{product.originalPrice} DT</span>
+          )}
         </div>
 
         {/* Badges Prix Dégressif */}
@@ -90,6 +93,38 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <QuickBuyForm product={product} promotions={promotions} />
         </div>
       </div>
+
+      {/* Product Blocks (Content sections) */}
+      {product.productBlocks && product.productBlocks.filter((b: any) => b.isActive).length > 0 && (
+        <div className="col-span-1 md:col-span-2 mt-16 space-y-12">
+          {product.productBlocks
+            .filter((b: any) => b.isActive)
+            .sort((a: any, b: any) => a.position - b.position)
+            .map((block: any) => {
+              const blockTitle = block.translations?.[locale]?.title || block.translations?.fr?.title || "";
+              const blockContent = block.translations?.[locale]?.content || block.translations?.fr?.content || "";
+              
+              return (
+                <div key={block.id} className="flex flex-col md:flex-row gap-8 items-center bg-card p-8 rounded-3xl shadow-sm border dark:border-gray-700">
+                  <div className="flex-1 space-y-4">
+                    {blockTitle && <h3 className="text-2xl font-bold">{blockTitle}</h3>}
+                    {blockContent && (
+                      <div 
+                        className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300"
+                        dangerouslySetInnerHTML={{ __html: blockContent }}
+                      />
+                    )}
+                  </div>
+                  {block.image && (
+                    <div className="w-full md:w-1/3 flex-shrink-0">
+                      <img src={block.image} alt={blockTitle} className="w-full h-auto object-cover rounded-xl shadow-md" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,22 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #ef4444; /* Default Red */
+  --color-primary: #ef4444; 
   --color-secondary: #fca5a5;
-  --background: #ffffff;
+  --color-tertiary: #f3f4f6;
+  --background: var(--color-secondary);
   --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --card-bg: #ffffff;
+  --form-bg: #111827;
+  --form-text: #ffffff;
+  --header-text: #ffffff;
+  --footer-text: #ffffff;
 }
 
 @theme {
   --color-primary: var(--color-primary);
   --color-secondary: var(--color-secondary);
+  --color-tertiary: var(--color-tertiary);
+  --color-card: var(--card-bg);
+  --color-form: var(--form-bg);
+  --color-form-text: var(--form-text);
 }
 
 body {

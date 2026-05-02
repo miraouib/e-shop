@@ -24,6 +24,7 @@ export default function CartPage() {
   const locale = useLocale();
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [globalSettings, setGlobalSettings] = useState({ globalShippingFee: 7.0, freeShippingThreshold: 100 });
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
@@ -32,6 +33,24 @@ export default function CartPage() {
 
   useEffect(() => {
     setMounted(true);
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/settings");
+        if (res.ok) {
+          const data = await res.json();
+          const settings = data['hydra:member']?.[0] || data['member']?.[0];
+          if (settings) {
+            setGlobalSettings({
+              globalShippingFee: settings.globalShippingFee ?? 7.0,
+              freeShippingThreshold: settings.freeShippingThreshold ?? 100
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch settings", e);
+      }
+    };
+    fetchSettings();
   }, []);
 
   if (!mounted) return <div className="py-20 text-center">Chargement...</div>;
@@ -48,24 +67,60 @@ export default function CartPage() {
     );
   }
 
-  const total = getTotal();
-  const shippingFee = 7.0; // Mock frais fixe
-  const isFreeShipping = total >= 100; 
-  const finalTotal = total + (isFreeShipping ? 0 : shippingFee);
+  const getCalculatedItems = () => {
+    return items.map(item => {
+      let currentPrice = item.price;
+      let hasPromo = false;
+      if (item.promotions && item.promotions.length > 0) {
+        const applicablePromotions = item.promotions
+          .filter((p: any) => item.quantity >= p.quantityThreshold)
+          .sort((a: any, b: any) => b.quantityThreshold - a.quantityThreshold);
+        if (applicablePromotions.length > 0) {
+          currentPrice = applicablePromotions[0].discountPrice;
+          hasPromo = true;
+        }
+      } else if (item.quantityThreshold && item.quantity >= item.quantityThreshold && item.discountPrice) {
+         currentPrice = item.discountPrice;
+         hasPromo = true;
+      }
+      return { ...item, currentPrice, hasPromo };
+    });
+  };
+
+  const calculatedItems = getCalculatedItems();
+  const subTotal = calculatedItems.reduce((acc, item) => acc + (item.currentPrice * item.quantity), 0);
+
+  let shippingFee = globalSettings.globalShippingFee;
+  let isFreeShipping = false;
+
+  if (calculatedItems.length >= 2) {
+    isFreeShipping = subTotal >= globalSettings.freeShippingThreshold;
+  } else if (calculatedItems.length === 1) {
+    const item = calculatedItems[0];
+    const itemTotal = item.currentPrice * item.quantity;
+    
+    if (item.isFreeShipping) {
+      isFreeShipping = true;
+    } else if (item.freeShippingPriceThreshold !== null && itemTotal >= item.freeShippingPriceThreshold) {
+      isFreeShipping = true;
+    } else if (item.freeShippingQuantityThreshold !== null && item.quantity >= item.freeShippingQuantityThreshold) {
+      isFreeShipping = true;
+    } else {
+      isFreeShipping = subTotal >= globalSettings.freeShippingThreshold;
+    }
+  }
+
+  const finalTotal = subTotal + (isFreeShipping ? 0 : shippingFee);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      const orderItems = items.map(item => {
-        const hasPromo = item.quantityThreshold && item.quantity >= item.quantityThreshold && item.discountPrice;
-        const currentPrice = hasPromo ? item.discountPrice! : item.price;
-        return {
-          id: item.id,
-          title: item.title,
-          quantity: item.quantity,
-          price: currentPrice
-        };
-      });
+      const orderItems = calculatedItems.map(item => ({
+        id: item.id,
+        title: item.title,
+        quantity: item.quantity,
+        price: item.currentPrice
+      }));
 
       const orderData = {
         customerName: data.fullName,
@@ -101,78 +156,59 @@ export default function CartPage() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => {
-            let currentPrice = item.price;
-            let hasPromo = false;
-            
-            if (item.promotions && item.promotions.length > 0) {
-              const applicablePromotions = item.promotions
-                .filter((p: any) => item.quantity >= p.quantityThreshold)
-                .sort((a: any, b: any) => b.quantityThreshold - a.quantityThreshold);
+          {calculatedItems.map((item) => (
+            <div key={item.id} className="flex flex-col sm:flex-row items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+              <img 
+                src={item.image || "https://placehold.co/100x100"} 
+                alt={item.title} 
+                className="w-24 h-24 object-cover rounded-md"
+              />
               
-              if (applicablePromotions.length > 0) {
-                currentPrice = applicablePromotions[0].discountPrice;
-                hasPromo = true;
-              }
-            } else if (item.quantityThreshold && item.quantity >= item.quantityThreshold && item.discountPrice) {
-               currentPrice = item.discountPrice;
-               hasPromo = true;
-            }
-
-            return (
-              <div key={item.id} className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border shadow-sm">
-                <img 
-                  src={item.image || "https://placehold.co/100x100"} 
-                  alt={item.title} 
-                  className="w-24 h-24 object-cover rounded-md"
-                />
-                
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="font-semibold text-lg">{item.title}</h3>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Prix unitaire: <span className={hasPromo ? "line-through" : ""}>{item.price} DT</span>
-                    {hasPromo && <span className="text-primary font-bold ml-2">{currentPrice} DT</span>}
-                  </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">{item.title}</h3>
+                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Prix unitaire: <span className={item.hasPromo ? "line-through" : ""}>{item.price} DT</span>
+                  {item.hasPromo && <span className="text-primary font-bold ml-2">{item.currentPrice} DT</span>}
                 </div>
+              </div>
 
-                <div className="flex items-center gap-3">
-                  <button 
-                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-                    onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                  >
-                    -
-                  </button>
-                  <span className="w-8 text-center">{item.quantity}</span>
-                  <button 
-                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-                    onClick={() => updateQuantity(item.id, Math.min(20, item.quantity + 1))}
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div className="font-bold text-lg min-w-[80px] text-center sm:text-right">
-                  {currentPrice * item.quantity} DT
-                </div>
-
+              <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => removeItem(item.id)}
-                  className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
+                  className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-bold transition-colors"
+                  onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
                 >
-                  <Trash2 size={20} />
+                  -
+                </button>
+                <span className="w-8 text-center font-bold text-gray-900 dark:text-white">{item.quantity}</span>
+                <button 
+                  className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-bold transition-colors"
+                  onClick={() => updateQuantity(item.id, Math.min(20, item.quantity + 1))}
+                >
+                  +
                 </button>
               </div>
-            );
-          })}
+
+              <div className="font-bold text-lg min-w-[80px] text-center sm:text-right text-gray-900 dark:text-white">
+                {item.currentPrice * item.quantity} DT
+              </div>
+
+              <button 
+                onClick={() => removeItem(item.id)}
+                className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-full transition-colors"
+              >
+                <Trash2 size={20} />
+              </button>
+            </div>
+          ))}
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 p-6 rounded-2xl border h-fit">
-          <h2 className="text-xl font-bold mb-4 border-b pb-2">Récapitulatif & Commande</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border dark:border-gray-700 h-fit shadow-sm">
+          <h2 className="text-xl font-bold mb-4 border-b dark:border-gray-700 pb-2 text-gray-900 dark:text-white">Récapitulatif & Commande</h2>
           
-          <div className="space-y-3 mb-6 text-gray-600">
+          <div className="space-y-3 mb-6 text-gray-600 dark:text-gray-300">
             <div className="flex justify-between">
               <span>Sous-total</span>
-              <span className="font-semibold">{total} DT</span>
+              <span className="font-semibold">{subTotal} DT</span>
             </div>
             <div className="flex justify-between">
               <span>Frais de livraison</span>
@@ -182,8 +218,8 @@ export default function CartPage() {
             </div>
           </div>
 
-          <div className="flex justify-between items-center py-4 border-t border-gray-200 mb-6">
-            <span className="text-lg font-bold">{t('total')}</span>
+          <div className="flex justify-between items-center py-4 border-t border-gray-200 dark:border-gray-700 mb-6">
+            <span className="text-lg font-bold text-gray-900 dark:text-white">{t('total')}</span>
             <span className="text-2xl font-bold text-primary">{finalTotal} DT</span>
           </div>
 

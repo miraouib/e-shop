@@ -11,7 +11,7 @@ export default function ProductCard({ product }: { product: any }) {
   const title = product.translations?.[locale]?.title || product.translations?.fr?.title || product.title || "Produit";
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow overflow-hidden group flex flex-col h-full border border-gray-100">
+    <div className="bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden group hover:shadow-md transition-shadow relative flex flex-col h-full">
       <Link href={`/${locale}/product/${product.id}`} className="relative h-48 w-full block overflow-hidden">
         {/* Placeholder if no image, using simple img tag for external URLs if they are not configured in next.config.js */}
         <img 
@@ -20,7 +20,7 @@ export default function ProductCard({ product }: { product: any }) {
           className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
         />
         {/* Badge promotion */}
-        {product.discountPrice && (
+        {product.originalPrice && (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
             Promo
           </div>
@@ -36,8 +36,11 @@ export default function ProductCard({ product }: { product: any }) {
         <p className="text-sm text-gray-500 mt-1">{product.category?.name}</p>
         
         <div className="mt-auto pt-4 flex items-center justify-between">
-          <div>
+          <div className="flex items-baseline gap-2">
             <span className="text-xl font-bold text-primary">{product.price} DT</span>
+            {product.originalPrice && (
+              <span className="text-xs text-gray-400 line-through font-medium">{product.originalPrice} DT</span>
+            )}
           </div>
           
           <button className="bg-primary/10 text-primary p-3 rounded-full hover:bg-primary hover:text-white transition-colors" aria-label="Ajouter au panier">

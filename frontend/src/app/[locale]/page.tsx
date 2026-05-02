@@ -1,9 +1,9 @@
 import HeroSlider from "@/components/HeroSlider";
 import ProductCard from "@/components/ProductCard";
 
-async function getPromotions() {
+async function getSlideshowProducts() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/promotions", { next: { revalidate: 60 } });
+    const res = await fetch("http://127.0.0.1:8000/api/products?isSlideshow=true&order[slideshowOrder]=asc&isActive=true", { next: { revalidate: 60 } });
     if (!res.ok) return [];
     const data = await res.json();
     return data['hydra:member'] || data['member'] || [];
@@ -12,9 +12,9 @@ async function getPromotions() {
   }
 }
 
-async function getProducts() {
+async function getNewArrivalProducts() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/products?isActive=true", { next: { revalidate: 60 } });
+    const res = await fetch("http://127.0.0.1:8000/api/products?isNewArrival=true&isActive=true", { next: { revalidate: 60 } });
     if (!res.ok) return [];
     const data = await res.json();
     return data['hydra:member'] || data['member'] || [];
@@ -35,13 +35,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   const t = await getTranslations('HomePage');
   
-  const promotions = await getPromotions();
-  const products = await getProducts();
+  const slideshowProducts = await getSlideshowProducts();
+  const newArrivals = await getNewArrivalProducts();
 
   return (
     <div className="space-y-12 py-8">
       <section>
-        <HeroSlider promotions={promotions} />
+        <HeroSlider products={slideshowProducts} />
       </section>
 
       <section>
@@ -51,14 +51,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product: any) => (
+          {newArrivals.map((product: any) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </section>
 
       {/* Amélioration : Section Témoignages */}
-      <section className="bg-gray-50 rounded-2xl p-8 md:p-12 mt-12 text-center">
+      <section className="hidden bg-gray-50 rounded-2xl p-8 md:p-12 mt-12 text-center">
         <h2 className="text-2xl font-bold mb-8">{t('testimonials_title')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[1, 2, 3].map((i) => (
