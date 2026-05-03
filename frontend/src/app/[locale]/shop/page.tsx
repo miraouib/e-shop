@@ -27,7 +27,7 @@ export default async function ShopPage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Tous nos produits</h1>
       </div>
-      
+
       <ShopClient categories={categories} />
     </div>
   );

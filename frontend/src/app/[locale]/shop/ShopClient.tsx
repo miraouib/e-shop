@@ -5,8 +5,27 @@ import ProductCard from "@/components/ProductCard";
 import { Filter, X, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { useTranslations } from 'next-intl';
 
-export default function ShopClient({ categories }: { categories: any[] }) {
+export default function ShopClient({ categories: initialCategories }: { categories: any[] }) {
   const t = useTranslations('Shop');
+
+  // Categories fetched client-side
+  const [categories, setCategories] = useState<any[]>(initialCategories || []);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/categories", {
+      headers: { Accept: "application/ld+json" }
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        // API returns 'member' or 'hydra:member' depending on Accept header
+        const list = data['hydra:member'] || data['member'] || (Array.isArray(data) ? data : []);
+        if (list.length > 0) setCategories(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Products
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -14,21 +33,27 @@ export default function ShopClient({ categories }: { categories: any[] }) {
 
   // Filters
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]); // multiple
   const [sortOrder, setSortOrder] = useState<string>("");
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [onlyNew, setOnlyNew] = useState(false);
 
+  const toggleCategory = (id: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
+    );
+  };
+
   const activeFilterCount = [
-    selectedCategory !== "",
+    selectedCategories.length > 0,
     sortOrder !== "",
     minPrice !== "" || maxPrice !== "",
     onlyNew,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
-    setSelectedCategory("");
+    setSelectedCategories([]);
     setSortOrder("");
     setMinPrice("");
     setMaxPrice("");
@@ -40,7 +65,11 @@ export default function ShopClient({ categories }: { categories: any[] }) {
       setLoading(true);
       let url = `http://127.0.0.1:8000/api/products?page=${pageNum}&isActive=true`;
 
-      if (selectedCategory) url += `&category=${selectedCategory}`;
+      // Multiple categories: add each as separate param
+      selectedCategories.forEach(id => {
+        url += `&category[]=/api/categories/${id}`;
+      });
+
       if (onlyNew) url += `&isNewArrival=true`;
       if (sortOrder === "price_asc") url += "&order[price]=asc";
       else if (sortOrder === "price_desc") url += "&order[price]=desc";
@@ -74,7 +103,7 @@ export default function ShopClient({ categories }: { categories: any[] }) {
   useEffect(() => {
     fetchProducts(1, true);
     setPage(1);
-  }, [selectedCategory, sortOrder, minPrice, maxPrice, onlyNew]);
+  }, [selectedCategories, sortOrder, minPrice, maxPrice, onlyNew]);
 
   const loadMore = () => {
     if (!loading && hasMore) {
@@ -84,41 +113,73 @@ export default function ShopClient({ categories }: { categories: any[] }) {
     }
   };
 
-  // Reusable filter panel content
+  // ── Filter Panel ──────────────────────────────────────────────
   const FilterPanel = () => (
     <div className="space-y-6">
-      {/* Categories */}
+
+      {/* Categories with checkboxes */}
       <div>
-        <h3 className="font-bold text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">
-          {t('categories')}
-        </h3>
-        <ul className="space-y-0.5">
-          <li>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-bold text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+            {t('categories')}
+          </h3>
+          {selectedCategories.length > 0 && (
             <button
-              onClick={() => setSelectedCategory("")}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedCategory === ""
-                  ? "bg-primary text-white"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
+              onClick={() => setSelectedCategories([])}
+              className="text-[10px] font-bold text-primary hover:underline"
             >
-              {t('all')}
+              Tout effacer
             </button>
-          </li>
-          {categories.map((cat) => (
-            <li key={cat.id}>
-              <button
-                onClick={() => setSelectedCategory(cat.id.toString())}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedCategory === cat.id.toString()
-                    ? "bg-primary text-white"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
-              >
-                {cat.name}
-              </button>
-            </li>
-          ))}
+          )}
+        </div>
+
+        <ul className="space-y-1">
+          {categories.length === 0 ? (
+            <li className="text-xs text-gray-400 px-2 py-1 italic">Chargement...</li>
+          ) : (
+            categories.map((cat) => {
+              const isChecked = selectedCategories.includes(cat.id.toString());
+              return (
+                <li key={cat.id}>
+                  <label className={`
+                    flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all
+                    ${isChecked
+                      ? "bg-primary/10 dark:bg-primary/20 border border-primary/30"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent"
+                    }
+                  `}>
+                    <div className={`
+                      w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all
+                      ${isChecked
+                        ? "bg-primary border-primary"
+                        : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-800"
+                      }
+                    `}>
+                      {isChecked && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className={`text-sm font-medium ${isChecked ? "text-primary font-bold" : "text-gray-700 dark:text-gray-300"}`}>
+                      {cat.name}
+                    </span>
+                    {cat.products && (
+                      <span className="ml-auto text-[11px] font-bold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full">
+                        {cat.products.length}
+                      </span>
+                    )}
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={isChecked}
+                      onChange={() => toggleCategory(cat.id.toString())}
+                    />
+                  </label>
+                </li>
+              );
+            })
+          )}
         </ul>
       </div>
 
@@ -164,7 +225,13 @@ export default function ShopClient({ categories }: { categories: any[] }) {
             min="0"
             placeholder="Min"
             value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
+            onChange={(e) => {
+              const newMin = e.target.value;
+              setMinPrice(newMin);
+              if (newMin !== "" && (maxPrice === "" || Number(maxPrice) <= Number(newMin))) {
+                setMaxPrice(String(Number(newMin) + 1));
+              }
+            }}
             className="w-full p-2 border dark:border-gray-600 rounded-lg text-sm outline-none focus:border-primary bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
           />
           <span className="text-gray-400 shrink-0">—</span>
@@ -197,7 +264,7 @@ export default function ShopClient({ categories }: { categories: any[] }) {
         </label>
       </div>
 
-      {/* Clear filters */}
+      {/* Clear all filters */}
       {activeFilterCount > 0 && (
         <>
           <hr className="dark:border-gray-700" />
@@ -205,33 +272,34 @@ export default function ShopClient({ categories }: { categories: any[] }) {
             onClick={clearFilters}
             className="w-full py-2.5 text-sm font-bold text-red-500 border border-red-200 dark:border-red-900/30 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
-            Effacer les filtres ({activeFilterCount})
+            Effacer tous les filtres ({activeFilterCount})
           </button>
         </>
       )}
     </div>
   );
 
+  // ── Render ────────────────────────────────────────────────────
   return (
     <div className="flex flex-col md:flex-row gap-8 relative">
 
-      {/* ── Mobile top bar ─────────────────────────── */}
-      <div className="md:hidden flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl border dark:border-gray-700 shadow-sm">
+      {/* ── Mobile top bar ──────────────────────────────────── */}
+      <div className="md:hidden flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-2xl border-2 border-gray-200 dark:border-gray-600 shadow-md mb-1">
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white"
+          className="flex items-center gap-2.5 bg-primary/10 dark:bg-primary/20 text-primary px-4 py-2.5 rounded-xl font-bold text-sm"
         >
-          <SlidersHorizontal size={18} className="text-primary" />
+          <SlidersHorizontal size={18} />
           Filtres
           {activeFilterCount > 0 && (
-            <span className="w-5 h-5 bg-primary text-white rounded-full text-xs flex items-center justify-center font-bold">
+            <span className="w-6 h-6 bg-primary text-white rounded-full text-xs flex items-center justify-center font-black">
               {activeFilterCount}
             </span>
           )}
         </button>
         <div className="relative">
           <select
-            className="appearance-none bg-transparent pr-6 text-sm font-medium outline-none text-gray-700 dark:text-white"
+            className="appearance-none bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white pl-3 pr-8 py-2.5 rounded-xl text-sm font-semibold outline-none border border-gray-200 dark:border-gray-600 cursor-pointer"
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
           >
@@ -240,11 +308,11 @@ export default function ShopClient({ categories }: { categories: any[] }) {
             <option value="price_asc">{t('price_asc')}</option>
             <option value="price_desc">{t('price_desc')}</option>
           </select>
-          <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
+          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-300" />
         </div>
       </div>
 
-      {/* ── Mobile Drawer ──────────────────────────── */}
+      {/* ── Mobile Drawer ────────────────────────────────────── */}
       {isDrawerOpen && (
         <div className="md:hidden fixed inset-0 z-50" onClick={() => setIsDrawerOpen(false)}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
@@ -268,13 +336,13 @@ export default function ShopClient({ categories }: { categories: any[] }) {
               onClick={() => setIsDrawerOpen(false)}
               className="mt-8 w-full bg-primary text-white py-3 rounded-xl font-bold hover:opacity-90 transition"
             >
-              {t('apply')}
+              {t('apply')} ({products.length} résultats)
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Desktop Sidebar ────────────────────────── */}
+      {/* ── Desktop Sidebar ──────────────────────────────────── */}
       <aside className="hidden md:block w-60 shrink-0">
         <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 shadow-sm p-5">
           <div className="flex items-center justify-between mb-5">
@@ -291,18 +359,21 @@ export default function ShopClient({ categories }: { categories: any[] }) {
         </div>
       </aside>
 
-      {/* ── Products Grid ──────────────────────────── */}
+      {/* ── Products Grid ────────────────────────────────────── */}
       <div className="flex-1 min-w-0">
 
         {/* Active filter tags */}
         {activeFilterCount > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {selectedCategory && (
-              <span className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full">
-                {categories.find(c => c.id.toString() === selectedCategory)?.name}
-                <button onClick={() => setSelectedCategory("")}><X size={12} /></button>
-              </span>
-            )}
+            {selectedCategories.map(id => {
+              const cat = categories.find(c => c.id.toString() === id);
+              return cat ? (
+                <span key={id} className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full">
+                  {cat.name}
+                  <button onClick={() => toggleCategory(id)}><X size={12} /></button>
+                </span>
+              ) : null;
+            })}
             {onlyNew && (
               <span className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full">
                 Nouveautés <button onClick={() => setOnlyNew(false)}><X size={12} /></button>
@@ -325,10 +396,14 @@ export default function ShopClient({ categories }: { categories: any[] }) {
 
         {/* Product count */}
         {!loading && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            <span className="font-bold text-gray-900 dark:text-white">{products.length}</span>{" "}
-            produit{products.length !== 1 ? "s" : ""} trouvé{products.length !== 1 ? "s" : ""}
-          </p>
+          <div className="flex items-center gap-2 mb-5">
+            <span className="inline-flex items-center gap-1.5 bg-primary text-white text-sm font-black px-3.5 py-1.5 rounded-full shadow-sm shadow-primary/30">
+              {products.length}
+            </span>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              produit{products.length !== 1 ? "s" : ""} trouvé{products.length !== 1 ? "s" : ""}
+            </span>
+          </div>
         )}
 
         {products.length === 0 && !loading ? (

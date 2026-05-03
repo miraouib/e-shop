@@ -1488,7 +1488,42 @@ export default function AdminDashboard() {
             <h2 className="text-2xl font-bold mb-6">{t('settings') || "Paramètres"}</h2>
             <form onSubmit={handleSaveSettings} className="space-y-6 max-w-4xl">
               <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border dark:border-gray-700">
-                <h3 className="text-lg font-bold mb-4 border-b pb-2 dark:border-gray-700 text-gray-900 dark:text-white">Paramètres Généraux</h3>
+                <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">Paramètres Généraux</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 border-b pb-3 dark:border-gray-700">
+                  Nom de la boutique affiché sur le site, par langue.
+                </p>
+
+                <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white">Nom de la boutique</h4>
+                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">Boutique</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {['fr', 'en', 'ar'].map(lang => (
+                      <div key={`shop-${lang}`}>
+                        <label className="block text-xs font-bold mb-1 text-gray-600 dark:text-gray-300">
+                          {lang === 'fr' ? '🇫🇷 Français' : lang === 'en' ? '🇬🇧 English' : '🇸🇦 العربية'}
+                        </label>
+                        <input
+                          type="text"
+                          value={globalSettings.translations[lang as keyof typeof globalSettings.translations]?.shopName || ""}
+                          onChange={(e) => setGlobalSettings({
+                            ...globalSettings,
+                            translations: {
+                              ...globalSettings.translations,
+                              [lang]: { ...globalSettings.translations[lang as keyof typeof globalSettings.translations], shopName: e.target.value }
+                            }
+                          })}
+                          className="w-full p-2.5 border-2 border-primary/30 dark:border-primary/20 bg-white dark:bg-gray-900 rounded-lg outline-none text-sm text-gray-900 dark:text-white focus:border-primary font-medium"
+                          placeholder={lang === 'ar' ? 'اسم المتجر' : lang === 'en' ? 'Shop name...' : 'Nom de la boutique...'}
+                          dir={lang === 'ar' ? 'rtl' : 'ltr'}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {['fr', 'en', 'ar'].map(lang => (
                     <div key={lang} className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border dark:border-gray-700">
@@ -1507,6 +1542,7 @@ export default function AdminDashboard() {
                           })}
                           className="w-full p-2 border dark:border-gray-700 bg-white dark:bg-gray-900 rounded outline-none text-sm text-gray-900 dark:text-white focus:border-primary"
                           placeholder="Ex: Ma Boutique"
+                          dir={lang === 'ar' ? 'rtl' : 'ltr'}
                         />
                       </div>
                       <div>
@@ -1523,6 +1559,7 @@ export default function AdminDashboard() {
                           })}
                           className="w-full p-2 border dark:border-gray-700 bg-white dark:bg-gray-900 rounded outline-none text-sm text-gray-900 dark:text-white focus:border-primary"
                           placeholder="Ex: SARL MyShop"
+                          dir={lang === 'ar' ? 'rtl' : 'ltr'}
                         />
                       </div>
                       <div>
@@ -1539,6 +1576,7 @@ export default function AdminDashboard() {
                           })}
                           className="w-full p-2 border dark:border-gray-700 bg-white dark:bg-gray-900 rounded outline-none text-sm text-gray-900 dark:text-white focus:border-primary"
                           placeholder="Ex: Rue 123, Paris"
+                          dir={lang === 'ar' ? 'rtl' : 'ltr'}
                         />
                       </div>
                     </div>

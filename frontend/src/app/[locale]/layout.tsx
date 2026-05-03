@@ -17,8 +17,8 @@ export const metadata: Metadata = {
 async function getGlobalData() {
   try {
     const [settingsRes, themesRes] = await Promise.all([
-      fetch("http://127.0.0.1:8000/api/settings", { next: { revalidate: 60 } }),
-      fetch("http://127.0.0.1:8000/api/themes?isActive=true", { next: { revalidate: 60 } })
+      fetch("http://127.0.0.1:8000/api/settings", { next: { revalidate: 0 } }),
+      fetch("http://127.0.0.1:8000/api/themes?isActive=true", { next: { revalidate: 0 } })
     ]);
 
     let settings = null;
@@ -65,6 +65,8 @@ export default async function RootLayout({
   } as any;
 
   const siteName = settings?.translations?.[locale]?.siteName || settings?.siteName || "Custom Shop";
+  // shopName: dedicated boutique name, falls back to siteName
+  const shopName = settings?.translations?.[locale]?.shopName || siteName;
   const companyName = settings?.translations?.[locale]?.companyName || settings?.companyName || siteName;
   const companyAddress = settings?.translations?.[locale]?.companyAddress || settings?.companyAddress;
 
@@ -73,7 +75,7 @@ export default async function RootLayout({
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <NextIntlClientProvider messages={messages}>
         <Toaster position="top-center" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
-        <Header locale={locale} siteName={siteName} />
+        <Header locale={locale} siteName={shopName} />
 
         <main className="flex-1 container mx-auto p-4">
           {children}

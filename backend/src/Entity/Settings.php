@@ -118,6 +118,11 @@ class Settings
         return $this->translations[$locale]['siteName'] ?? $this->siteName;
     }
 
+    public function getTranslatedShopName(string $locale = 'fr'): ?string
+    {
+        return $this->translations[$locale]['shopName'] ?? $this->translations[$locale]['siteName'] ?? $this->siteName;
+    }
+
     public function getTranslatedCompanyName(string $locale = 'fr'): ?string
     {
         return $this->translations[$locale]['companyName'] ?? $this->companyName;
